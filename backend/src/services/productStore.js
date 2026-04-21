@@ -201,6 +201,7 @@ export async function listProducts(req) {
   const offset = (page - 1) * limit;
 
   if (databaseReady && pool) {
+    console.log("ssssssss");
     const conditions = [];
     const values = [];
 
@@ -269,6 +270,17 @@ export async function listProducts(req) {
         availableBrands: brandsResult.rows.map((row) => row.brand)
       }
     };
+  }else{
+    return {
+      data: [],
+      meta: {
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+        availableBrands: []
+      } 
+    };
   }
 }
 
@@ -276,12 +288,14 @@ export async function getProductById(id) {
   if (databaseReady && pool) {
     const result = await pool.query("SELECT * FROM products WHERE id = $1 OR slug = $1 LIMIT 1", [id]);
     return normalizeRecord(result.rows[0]);
+  }else{
+    return null;
   }
 }
 
 export async function createProduct(input) {
   const product = buildProduct(input);
-
+console.log(product,"product")
   if (databaseReady && pool) {
     const result = await pool.query(
       `
@@ -310,6 +324,8 @@ export async function createProduct(input) {
       ]
     );
     return normalizeRecord(result.rows[0]);
+  }else{
+    return null;
   }
 }
 
@@ -366,6 +382,8 @@ export async function updateProduct(id, input) {
       ]
     );
     return normalizeRecord(result.rows[0]);
+  }else{
+    return null;
   }
 }
 
@@ -378,5 +396,7 @@ export async function deleteProduct(id) {
   if (databaseReady && pool) {
     await pool.query("DELETE FROM products WHERE id = $1", [existing.id]);
     return true;
+  } else {
+    return false;
   }
 }

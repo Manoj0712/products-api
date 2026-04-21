@@ -56,6 +56,7 @@ router.get("/products", async (req, res, next) => {
 router.get("/products/:id", async (req, res, next) => {
   try {
     const product = await getProductById(req.params.id);
+    console.log(product,"product")
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
