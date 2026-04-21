@@ -80,7 +80,7 @@ export async function bootstrapStore() {
 
 export async function listProducts(req) {
   const page = Math.max(1, Number(req.query.page || 1));
-  const limit = Math.max(1, Math.min(50, Number(req.query.limit || 8)));
+  const limit = Math.max(1, Math.min(50, Number(req.query.limit || 9)));
   const q = String(req.query.q || "");
   const search = q.toLowerCase().trim();
   const brands = req.query.brands || [];
