@@ -37,27 +37,13 @@ console.log("Setting up database schema...");
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
-
-  await pool.query(`
-    ALTER TABLE products
-    ADD COLUMN IF NOT EXISTS rating NUMERIC(3, 2) NOT NULL DEFAULT 0
-  `);
-
-  await pool.query(`
-    UPDATE products
-    SET rating = COALESCE(
-      NULLIF(rating, 0),
-      (
-        SELECT COALESCE(AVG((review->>'rating')::numeric), 0)
-        FROM jsonb_array_elements(reviews) AS review
-      ),
-      0
-    )
-  `);
-
+  
   const { rows } = await pool.query("SELECT COUNT(*)::int AS count FROM products");
+  console.log(rows,"rows")
   if (rows[0].count === 0) {
+    console.log("Seeding initial product data...");
     for (const product of seedProducts) {
+      console.log(product,"product")
       await pool.query(
         `
           INSERT INTO products (
@@ -85,8 +71,8 @@ console.log("Setting up database schema...");
       );
     }
   }
-
   databaseReady = true;
+  console.log("Database is ready.",databaseReady);
 }
 
 function normalizeRecord(record) {
