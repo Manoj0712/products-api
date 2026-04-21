@@ -1,0 +1,25 @@
+{
+  "name": "backend-developer-task-api",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "build": "echo 'No build step'"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
