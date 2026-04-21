@@ -5,7 +5,9 @@ import { slugify } from "../utils/slugify.js";
 
 const pool = env.databaseUrl
   ? new Pool({
-    connectionString: env.databaseUrl
+    connectionString: env.databaseUrl,
+    ssl: { rejectUnauthorized: false },
+  family: 4
   })
   : null;
 
