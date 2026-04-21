@@ -16,7 +16,8 @@ async function initializeDatabase() {
   if (!pool || databaseReady) {
     return;
   }
-console.log("Setting up database schema...");
+console.log("Setting up database schema...",pool);
+console.log(pool.query,"pool.query")
   await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY,
@@ -37,7 +38,7 @@ console.log("Setting up database schema...");
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
-  
+  console.log("Database schema is ready.");
   const { rows } = await pool.query("SELECT COUNT(*)::int AS count FROM products");
   console.log(rows,"rows")
   if (rows[0].count === 0) {
@@ -127,14 +128,14 @@ function buildProduct(input, existingId) {
 }
 
 export async function bootstrapStore() {
-  try {
+  // try {
     await initializeDatabase();
     console.log("Database initialized successfully.");
-  } catch (error) {
-    console.log("Failed to initialize database:");
-    console.warn("PostgreSQL unavailable, falling back to in-memory data.");
-    console.warn(error.message);
-  } 
+  // } catch (error) {
+  //   console.log("Failed to initialize database:");
+  //   console.warn("PostgreSQL unavailable, falling back to in-memory data.");
+  //   console.warn(error.message);
+  // } 
 }
 
 function toArray(value) {
