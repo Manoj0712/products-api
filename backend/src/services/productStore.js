@@ -2,24 +2,20 @@ import { Pool } from "pg";
 import { env } from "../config/env.js";
 import { seedProducts } from "../data/seedProducts.js";
 import { slugify } from "../utils/slugify.js";
+import { buildProduct, getAverageRating, getProductRating, normalizeRecord, toArray } from "../utils/productHelper.js";
 
 const pool = env.databaseUrl
   ? new Pool({
-    connectionString: env.databaseUrl,
-    ssl: { rejectUnauthorized: false },
-  family: 4
+    connectionString: env.databaseUrl
   })
   : null;
 
 let databaseReady = false;
 
 async function initializeDatabase() {
-  console.log("Initializing database...");
   if (!pool || databaseReady) {
     return;
   }
-console.log("Setting up database schema...",pool);
-console.log(pool.query,"pool.query")
   await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY,
@@ -40,13 +36,9 @@ console.log(pool.query,"pool.query")
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
-  console.log("Database schema is ready.");
   const { rows } = await pool.query("SELECT COUNT(*)::int AS count FROM products");
-  console.log(rows,"rows")
   if (rows[0].count === 0) {
-    console.log("Seeding initial product data...");
     for (const product of seedProducts) {
-      console.log(product,"product")
       await pool.query(
         `
           INSERT INTO products (
@@ -75,109 +67,18 @@ console.log(pool.query,"pool.query")
     }
   }
   databaseReady = true;
-  console.log("Database is ready.",databaseReady);
-}
-
-function normalizeRecord(record) {
-  if (!record) {
-    return null;
-  }
-
-  return {
-    ...record,
-    price: Number(record.price),
-    rating: Number(record.rating ?? getAverageRating(record.reviews))
-  };
-}
-
-function cloneProduct(product) {
-  if (!product) {
-    return null;
-  }
-
-  return {
-    ...product,
-    price: Number(product.price),
-    rating: Number(product.rating ?? getAverageRating(product.reviews)),
-    images: [...(product.images || [])],
-    reviews: [...(product.reviews || [])],
-    specifications: { ...(product.specifications || {}) }
-  };
-}
-
-function buildProduct(input, existingId) {
-  const reviews = Array.isArray(input.reviews) ? input.reviews : [];
-  const id = `prod-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-  return {
-    id: existingId || id,
-    slug: input.slug ? slugify(input.slug) : slugify(input.name),
-    name: input.name,
-    description: input.description,
-    price: Number(input.price),
-    rating: getProductRating({
-      rating: input.rating,
-      reviews
-    }),
-    currency: input.currency || "USD",
-    sku: input.sku,
-    images: Array.isArray(input.images) ? input.images : [],
-    availability: input.availability || "In Stock",
-    category: input.category || "",
-    brand: input.brand || "",
-    specifications: input.specifications || {},
-    reviews
-  };  
 }
 
 export async function bootstrapStore() {
-  // try {
+  try {
     await initializeDatabase();
-    console.log("Database initialized successfully.");
-  // } catch (error) {
-  //   console.log("Failed to initialize database:");
-  //   console.warn("PostgreSQL unavailable, falling back to in-memory data.");
-  //   console.warn(error.message);
-  // } 
-}
-
-function toArray(value) {
-  if (!value) {
-    return [];
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item).trim()).filter(Boolean);
-  }
-
-  return String(value)
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function getAvailableBrands(products) {
-  return [...new Set(products.map((product) => String(product.brand || "").trim()).filter(Boolean))].sort();
-}
-
-function getAverageRating(reviews = []) {
-  if (!Array.isArray(reviews) || reviews.length === 0) {
-    return 0;
-  }
-
-  const total = reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0);
-  return total / reviews.length;
-}
-
-function getProductRating(product) {
-  if (product.rating !== undefined && product.rating !== null && product.rating !== "") {
-    return Number(product.rating);
-  }
-
-  return getAverageRating(product.reviews);
+  } catch (error) {
+    console.warn("PostgreSQL unavailable, falling back to in-memory data.");
+    console.warn(error.message);
+  } 
 }
 
 export async function listProducts(req) {
-
   const page = Math.max(1, Number(req.query.page || 1));
   const limit = Math.max(1, Math.min(50, Number(req.query.limit || 8)));
   const q = String(req.query.q || "");
@@ -191,9 +92,7 @@ export async function listProducts(req) {
   const hasMinPrice = minPrice !== undefined && minPrice !== null && minPrice !== "";
   const hasMaxPrice = maxPrice !== undefined && maxPrice !== null && maxPrice !== "";
   const offset = (page - 1) * limit;
-console.log(databaseReady,"databaseReady")
   if (databaseReady && pool) {
-    console.log("ssssssss");
     const conditions = [];
     const values = [];
 
@@ -278,7 +177,7 @@ console.log(databaseReady,"databaseReady")
 
 export async function getProductById(id) {
   if (databaseReady && pool) {
-    const result = await pool.query("SELECT * FROM products WHERE id = $1 OR slug = $1 LIMIT 1", [id]);
+    const result = await pool.query("SELECT * FROM products WHERE id = $1", [id]);
     return normalizeRecord(result.rows[0]);
   }else{
     return null;
@@ -287,7 +186,6 @@ export async function getProductById(id) {
 
 export async function createProduct(input) {
   const product = buildProduct(input);
-console.log(product,"product")
   if (databaseReady && pool) {
     const result = await pool.query(
       `
