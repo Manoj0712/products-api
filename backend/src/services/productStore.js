@@ -12,10 +12,11 @@ const pool = env.databaseUrl
 let databaseReady = false;
 
 async function initializeDatabase() {
+  console.log("Initializing database...");
   if (!pool || databaseReady) {
     return;
   }
-
+console.log("Setting up database schema...");
   await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY,
@@ -142,7 +143,9 @@ function buildProduct(input, existingId) {
 export async function bootstrapStore() {
   try {
     await initializeDatabase();
+    console.log("Database initialized successfully.");
   } catch (error) {
+    console.log("Failed to initialize database:");
     console.warn("PostgreSQL unavailable, falling back to in-memory data.");
     console.warn(error.message);
   } 
@@ -199,7 +202,7 @@ export async function listProducts(req) {
   const hasMinPrice = minPrice !== undefined && minPrice !== null && minPrice !== "";
   const hasMaxPrice = maxPrice !== undefined && maxPrice !== null && maxPrice !== "";
   const offset = (page - 1) * limit;
-
+console.log(databaseReady,"databaseReady")
   if (databaseReady && pool) {
     console.log("ssssssss");
     const conditions = [];
