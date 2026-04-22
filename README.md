@@ -15,19 +15,6 @@ Full-stack product listing application built for the SuperLabs backend assignmen
 - `frontend` - React app for search, product detail, and admin CRUD
 
 ## Run
-
-### Backend
-
-1. Copy `backend/.env.example` to `backend/.env`
-2. Install dependencies with `npm install`
-3. Run `npm run dev`
-
-### Frontend
-
-1. Copy `frontend/.env.example` to `frontend/.env`
-2. Install dependencies with `npm install`
-3. Run `npm run dev`
-
 ## API Docs
 
 - Swagger UI: `http://localhost:5001/api/docs`
