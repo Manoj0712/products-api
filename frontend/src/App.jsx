@@ -14,7 +14,7 @@ export default function App() {
   const detailState = useProductDetail(route.productId, route.name === "detail");
 
   function openProductDetail(product) {
-    navigate(`/products/${product.slug || product.id}`);
+    navigate(`/products/${product.id}`);
   }
 
   return (
