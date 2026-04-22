@@ -29,7 +29,6 @@ const router = Router();
 router.get("/products", async (req, res, next) => {
   try {
     const result = await listProducts(req); 
-    console.log(result,"result")
     res.json(result);
   } catch (error) {
     next(error);
